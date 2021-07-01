@@ -100,6 +100,9 @@ def scrollTop():
     driver.execute_script("return arguments[0].scrollIntoView(true);", element)
     time.sleep(3)
 
+def removeDuplicates(ls):
+    return list({*map(tuple, map(sorted, ls))})
+
 def exportExcel(name):
     try:
         soup = BeautifulSoup(driver.page_source)
@@ -201,7 +204,7 @@ for option in options:
     H = list(range(minHeight, maxHeight, dimStep))
     W = list(range(minWidth, maxWidth, dimStep))
 
-    dimensions = list(itertools.product(*[H, W]))
+    dimensions = removeDuplicates(list(itertools.product(*[H, W])))
 
     for dim in dimensions:
         ## Set diameter if category == "Round"
