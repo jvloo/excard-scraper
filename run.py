@@ -7,23 +7,25 @@ priceListUrl = "https://www.excard.com.my/price-list-new/Digital/52"
 
 ## Category options
 catOptions = ['Custom Die-Cut', 'Rectangle/Square', 'Round', 'Standard Shape', 'Multiple Dieline']
-catExcludes = ['Multiple Dieline']
+catExcludes = ['Custom Die-Cut', 'Rectangle/Square', 'Standard Shape', 'Multiple Dieline']
 
 ## Cutting options
 cutOptions = ['Cut To Size', 'Die-Cutting']
 cutExcludes = []
 
 ## Paper options
-paperOptions = ['Mirror Kote', 'Printing Paper', 'Transparent OPP', 'Removable Transparent OPP',
-    'Synthetic Paper', 'White PP (Polypropylene)', 'Bright Silver Polyester',
-    'Matte Silver Polyester', 'Removable White PP', 'Brown Craft Paper', 'Warranty Sticker']
+# paperOptions = ['Mirror Kote', 'Printing Paper', 'Transparent OPP', 'Removable Transparent OPP',
+#     'Synthetic Paper', 'White PP (Polypropylene)', 'Bright Silver Polyester',
+#     'Matte Silver Polyester', 'Removable White PP', 'Brown Craft Paper', 'Warranty Sticker']
 
+paperOptions = ['Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
 paperExcludes = []
 
 ## Finishing options
-finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)',
-    'Gloss Water Based Varnish', 'UV Varnish', 'Soft Touch Laminate (Front)']
+# finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)',
+#     'Gloss Water Based Varnish', 'UV Varnish', 'Soft Touch Laminate (Front)']
 
+finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)', 'UV Varnish']
 finishExcludes = []
 
 ## Dimensions
@@ -105,7 +107,7 @@ def removeDuplicates(ls):
 
 def exportExcel(name):
     try:
-        soup = BeautifulSoup(driver.page_source)
+        soup = BeautifulSoup(driver.page_source, "lxml")
         div = soup.select_one("#mainContent_price_list_sticker1_tblPriceList")
         table = pd.read_html(str(div))
 
@@ -145,16 +147,6 @@ options = [catOptions, cutOptions, paperOptions, finishOptions]
 options = list(itertools.product(*options))
 
 for option in options:
-    ## Select quantities
-    click('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
-    click('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
-    click('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
-
-    print('Select all quantities')
-
-    time.sleep(3)
-
-    ############################################################################
 
     scrollTop()
 
@@ -165,10 +157,23 @@ for option in options:
     ## If category is excluded
     if category in catExcludes:
         print('Category "'+category+'" is excluded. Skipping..')
-        # continue
+        continue
 
     click("mainContent_price_list_sticker1_rdcategory_"+str(catIndex))
     print('Set category as "'+category+'"')
+
+    ############################################################################
+
+    ## Select quantities
+    time.sleep(3)
+
+    click('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
+    click('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
+    click('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
+
+    print('Select all quantities')
+
+    scrollTop()
 
     ############################################################################
 
@@ -191,6 +196,10 @@ for option in options:
             minHeight = 54
             minWidth = 89
 
+        ## When category = "Round"
+        if category == "Round":
+            minHeight = 15 # 1~10 only applicable for "Warranty Sticker"
+
     ## Check for cutting method supports
     if category != "Rectangle/Square" and cutting == "Die-Cutting":
         print('Cutting method "'+cutting+'" is not supported. Skipping..')
@@ -207,9 +216,9 @@ for option in options:
     for dim in dimensions:
         ## Set diameter if category == "Round"
         if category == "Round":
-            dimension = dim[0]
-            print('Set diameter as', dimension)
-            fill("mainContent_price_list_sticker1_txtDiameter", dimension)
+            dimension = str(dim[0])
+            print('Set diameter as', dim[0])
+            fill("mainContent_price_list_sticker1_txtDiameter", dim[0])
 
             click("excard-member")
             time.sleep(3)
