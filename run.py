@@ -196,9 +196,9 @@ for option in options:
             minHeight = 54
             minWidth = 89
 
-        ## When category = "Round"
-        if category == "Round":
-            minHeight = 15 # 1~10 only applicable for "Warranty Sticker"
+    ## When category = "Round"
+    if category == "Round":
+        minHeight = 15 # 1~10 only applicable for "Warranty Sticker"
 
     ## Check for cutting method supports
     if category != "Rectangle/Square" and cutting == "Die-Cutting":
