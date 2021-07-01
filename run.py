@@ -101,7 +101,7 @@ def scrollTop():
     time.sleep(3)
 
 def removeDuplicates(ls):
-    return list({*map(tuple, map(sorted, ls))})
+    return sorted(sorted(list({*map(tuple, map(sorted, ls))}), key=lambda x: x[0]), key=lambda x: x[1])
 
 def exportExcel(name):
     try:
@@ -139,8 +139,6 @@ navigate(priceListUrl)
 print('Start scraping task...')
 
 ################################################################################
-
-start = time.perf_counter()
 
 ## Generate all option combinations
 options = [catOptions, cutOptions, paperOptions, finishOptions]
@@ -300,7 +298,6 @@ for option in options:
         exportExcel(dirName+'/'+filename)
 
         print('Price list is exported successfully')
-        print('Time taken', time.perf_counter() - start)
         print('Preparing for next task...')
 
         ## Clear dimension input

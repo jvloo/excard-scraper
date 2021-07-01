@@ -11,6 +11,6 @@ W = list(range(minWidth, maxWidth, 1))
 dimensions = list(itertools.product(*[H, W]))
 
 def removeDuplicates(ls):
-    return list({*map(tuple, map(sorted, ls))})
+    return sorted(sorted(list({*map(tuple, map(sorted, ls))}), key=lambda x: x[0]), key=lambda x: x[1])
 
 print(len(removeDuplicates(dimensions)))
