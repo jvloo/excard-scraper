@@ -33,6 +33,8 @@ maxHeight = 300
 minWidth = 25
 maxWidth = 420
 
+dimStep = 1
+
 ################################################################################
 ## END OF USER CONFIGURATION
 ################################################################################
@@ -196,8 +198,8 @@ for option in options:
     ############################################################################
 
     ## Generate all dimension combinations
-    H = list(range(minHeight, maxHeight))
-    W = list(range(minWidth, maxWidth))
+    H = list(range(minHeight, maxHeight, dimStep))
+    W = list(range(minWidth, maxWidth, dimStep))
 
     dimensions = list(itertools.product(*[H, W]))
 
