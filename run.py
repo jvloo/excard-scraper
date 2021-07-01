@@ -17,15 +17,15 @@ cutExcludes = []
 # paperOptions = ['Mirror Kote', 'Printing Paper', 'Transparent OPP', 'Removable Transparent OPP',
 #     'Synthetic Paper', 'White PP (Polypropylene)', 'Bright Silver Polyester',
 #     'Matte Silver Polyester', 'Removable White PP', 'Brown Craft Paper', 'Warranty Sticker']
+paperOptions = ['Mirror Kote', 'Printing Paper'] #, 'Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
 
-paperOptions = ['Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
 paperExcludes = []
 
 ## Finishing options
 # finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)',
 #     'Gloss Water Based Varnish', 'UV Varnish', 'Soft Touch Laminate (Front)']
-
 finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)', 'UV Varnish']
+
 finishExcludes = []
 
 ## Dimensions
@@ -106,6 +106,7 @@ def removeDuplicates(ls):
     return sorted(sorted(list({*map(tuple, map(sorted, ls))}), key=lambda x: x[0]), key=lambda x: x[1])
 
 def exportExcel(name):
+    print('Preparing data to export...')
     try:
         soup = BeautifulSoup(driver.page_source, "lxml")
         div = soup.select_one("#mainContent_price_list_sticker1_tblPriceList")
@@ -115,6 +116,7 @@ def exportExcel(name):
         df.to_excel(name+".xlsx", index=False, header=False)
 
     except Exception as e:
+        print(e)
         time.sleep(3)
         exportExcel(name)
 
@@ -211,14 +213,17 @@ for option in options:
     H = list(range(minHeight, maxHeight, dimStep))
     W = list(range(minWidth, maxWidth, dimStep))
 
-    dimensions = removeDuplicates(list(itertools.product(*[H, W])))
+    if category == "Round":
+        dimensions = H
+    else:
+        dimensions = removeDuplicates(list(itertools.product(*[H, W])))
 
     for dim in dimensions:
         ## Set diameter if category == "Round"
         if category == "Round":
-            dimension = str(dim[0])
-            print('Set diameter as', dim[0])
-            fill("mainContent_price_list_sticker1_txtDiameter", dim[0])
+            dimension = str(dim)
+            print('Set diameter as', dim)
+            fill("mainContent_price_list_sticker1_txtDiameter", dim)
 
             click("excard-member")
             time.sleep(3)
