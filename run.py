@@ -1,32 +1,24 @@
 ## Credentials & URL
-excardUsername = ""
-excardPassword = ""
+excardUsername = input("Please enter Excard username:\n")
+excardPassword = input("Please enter Excard password:\n")
 
-loginUrl = "https://www.excard.com.my/home-visitor"
-priceListUrl = "https://www.excard.com.my/price-list-new/Digital/52"
+loginUrl       = "https://www.excard.com.my/home-visitor"
+priceListUrl   = "https://www.excard.com.my/price-list-new/Digital/52"
 
-## Category options
-catOptions = ['Custom Die-Cut', 'Rectangle/Square', 'Round', 'Standard Shape', 'Multiple Dieline']
-catExcludes = ['Custom Die-Cut', 'Rectangle/Square', 'Standard Shape', 'Multiple Dieline']
+## Options Available
+catOptions    = ['Custom Die-Cut', 'Rectangle/Square', 'Round', 'Standard Shape', 'Multiple Dieline']
+cutOptions    = ['Cut To Size', 'Die-Cutting']
+paperOptions  = ['Mirror Kote', 'Printing Paper', 'Transparent OPP', 'Removable Transparent OPP',
+    'Synthetic Paper', 'White PP (Polypropylene)', 'Bright Silver Polyester',
+    'Matte Silver Polyester', 'Removable White PP', 'Brown Craft Paper', 'Warranty Sticker']
+finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)',
+    'Gloss Water Based Varnish', 'UV Varnish', 'Soft Touch Laminate (Front)']
 
-## Cutting options
-cutOptions = ['Cut To Size', 'Die-Cutting']
-cutExcludes = []
-
-## Paper options
-# paperOptions = ['Mirror Kote', 'Printing Paper', 'Transparent OPP', 'Removable Transparent OPP',
-#     'Synthetic Paper', 'White PP (Polypropylene)', 'Bright Silver Polyester',
-#     'Matte Silver Polyester', 'Removable White PP', 'Brown Craft Paper', 'Warranty Sticker']
-paperOptions = ['Mirror Kote', 'Printing Paper'] #, 'Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
-
-paperExcludes = []
-
-## Finishing options
-# finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)',
-#     'Gloss Water Based Varnish', 'UV Varnish', 'Soft Touch Laminate (Front)']
-finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)', 'UV Varnish']
-
-finishExcludes = []
+## Options to execute
+catExecutables    = ['Round']
+cutExecutables    = ['Cut To Size', 'Die-Cutting']
+paperExecutables  = ['Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
+finishExecutables = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)', 'UV Varnish']
 
 ## Dimensions
 minHeight = 10
@@ -92,6 +84,11 @@ def select(target, value):
     Select(driver.find_element_by_id(target)).select_by_visible_text(value)
     wait()
 
+def check(target):
+    checkbox = driver.find_element_by_id(target)
+    while not checkbox.is_selected():
+    	checkbox.click()
+
 def scrollTo(target):
     element = driver.find_element_by_id(target)
     driver.execute_script("return arguments[0].scrollIntoView(true);", element)
@@ -145,7 +142,7 @@ print('Start scraping task...')
 ################################################################################
 
 ## Generate all option combinations
-options = [catOptions, cutOptions, paperOptions, finishOptions]
+options = [catExecutables, cutExecutables, paperExecutables, finishExecutables]
 options = list(itertools.product(*options))
 
 for option in options:
@@ -157,9 +154,9 @@ for option in options:
     catIndex = catOptions.index(category)
 
     ## If category is excluded
-    if category in catExcludes:
-        print('Category "'+category+'" is excluded. Skipping..')
-        continue
+    # if category in catExcludes:
+    #     print('Category "'+category+'" is excluded. Skipping..')
+    #     continue
 
     click("mainContent_price_list_sticker1_rdcategory_"+str(catIndex))
     print('Set category as "'+category+'"')
@@ -167,26 +164,27 @@ for option in options:
     ############################################################################
 
     ## Select quantities
+    scrollTo('mainContent_price_list_sticker1_ddlfinishing')
     time.sleep(3)
 
-    click('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
-    click('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
-    click('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
+    check('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
+    check('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
+    check('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
 
     print('Select all quantities')
 
-    scrollTop()
-
     ############################################################################
+
+    scrollTop()
 
     ## Set cutting method
     cutting = option[1]
     cutIndex = cutOptions.index(cutting)
 
     ## If cutting is excluded
-    if cutting in cutExcludes:
-        print('Cutting method "'+cutting+'" is excluded. Skipping..')
-        continue
+    # if cutting in cutExcludes:
+    #     print('Cutting method "'+cutting+'" is excluded. Skipping..')
+    #     continue
 
     ## When category = "Rectangle/Square"
     if category == "Rectangle/Square":
@@ -209,9 +207,25 @@ for option in options:
 
     ############################################################################
 
+    ## Set paper
+    paper = option[2]
+    paperIndex = paperOptions.index(paper)
+
+    ## Set finishing
+    finish = option[3]
+    finishIndex = finishOptions.index(finish)
+
+    ############################################################################
+
+    ## Skip dimension
+    # if category == "Round" and cutting == "Cut To Size" and paper == "Transparent OPP" and finish == "Not Required":
+    #     minHeight = 143
+
+    ############################################################################
+
     ## Generate all dimension combinations
-    H = list(range(minHeight, maxHeight, dimStep))
-    W = list(range(minWidth, maxWidth, dimStep))
+    H = list(range(minHeight, maxHeight+1, dimStep))
+    W = list(range(minWidth, maxWidth+1, dimStep))
 
     if category == "Round":
         dimensions = H
@@ -219,13 +233,15 @@ for option in options:
         dimensions = removeDuplicates(list(itertools.product(*[H, W])))
 
     for dim in dimensions:
+        scrollTop()
+
         ## Set diameter if category == "Round"
         if category == "Round":
             dimension = str(dim)
             print('Set diameter as', dim)
             fill("mainContent_price_list_sticker1_txtDiameter", dim)
 
-            click("excard-member")
+            click("mainContent_price_list_sticker1_txtDiameter")
             time.sleep(3)
 
         ## Else, set dimensions
@@ -234,25 +250,21 @@ for option in options:
             print('Set height x width as '+dimension)
 
             fill("mainContent_price_list_sticker1_txtHeight", dim[0])
-            click("excard-member")
+            click("mainContent_price_list_sticker1_txtHeight")
 
             time.sleep(3)
 
             fill("mainContent_price_list_sticker1_txtWidth", dim[1])
-            click("excard-member")
+            click("mainContent_price_list_sticker1_txtWidth")
 
             time.sleep(3)
 
         ########################################################################
 
-        ## Set paper
-        paper = option[2]
-        paperIndex = paperOptions.index(paper)
-
         ## If paper is excluded
-        if paper in paperExcludes:
-            print('Paper "'+paper+'" is excluded. Skipping..')
-            continue
+        # if paper in paperExcludes:
+        #     print('Paper "'+paper+'" is excluded. Skipping..')
+        #     continue
 
         ## Check for "Warranty Sticker" supports
         if category in ["Custom Die-Cut", "Multiple Dieline"] and paper == "Warranty Sticker":
@@ -264,14 +276,10 @@ for option in options:
 
         ########################################################################
 
-        ## Set finishing
-        finish = option[3]
-        finishIndex = finishOptions.index(finish)
-
         ## If finishing is excluded
-        if finish in finishExcludes:
-            print('Finishing "'+finish+'" is excluded. Skipping..')
-            continue
+        # if finish in finishExcludes:
+        #     print('Finishing "'+finish+'" is excluded. Skipping..')
+        #     continue
 
         ## Check for finishing supports
         catWithoutFinish = ["Printing Paper", "Bright Silver Polyester", "Matte Silver Polyester", "Brown Craft Paper"]
@@ -295,6 +303,9 @@ for option in options:
         ########################################################################
 
         ## Generate price list
+        scrollTo('mainContent_price_list_sticker1_ddlfinishing')
+        time.sleep(3)
+
         click("mainContent_price_list_sticker1_btnGenerate")
         print('Generating price list')
         wait()
