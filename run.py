@@ -16,8 +16,8 @@ finishOptions = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Fron
 
 ## Options to execute
 catExecutables    = ['Round']
-cutExecutables    = ['Cut To Size', 'Die-Cutting']
-paperExecutables  = ['Transparent OPP', 'Synthetic Paper', 'White PP (Polypropylene)']
+cutExecutables    = ['Die-Cutting']
+paperExecutables  = ['Synthetic Paper']
 finishExecutables = ['Not Required', 'Matte Laminate (Front)', 'Gloss Laminate (Front)', 'UV Varnish']
 
 ## Dimensions
@@ -95,7 +95,7 @@ def scrollTo(target):
     time.sleep(3)
 
 def scrollTop():
-    element = driver.find_element_by_id("tab_container")
+    element = driver.find_element_by_id("mainContent_price_list_sticker1_rblOrderType_0")
     driver.execute_script("return arguments[0].scrollIntoView(true);", element)
     time.sleep(3)
 
@@ -103,7 +103,9 @@ def removeDuplicates(ls):
     return sorted(sorted(list({*map(tuple, map(sorted, ls))}), key=lambda x: x[0]), key=lambda x: x[1])
 
 def exportExcel(name):
+    trials = 0
     print('Preparing data to export...')
+
     try:
         soup = BeautifulSoup(driver.page_source, "lxml")
         div = soup.select_one("#mainContent_price_list_sticker1_tblPriceList")
@@ -113,9 +115,21 @@ def exportExcel(name):
         df.to_excel(name+".xlsx", index=False, header=False)
 
     except Exception as e:
-        print(e)
-        time.sleep(3)
-        exportExcel(name)
+        print('Failed to scrape data. Retrying...')
+        trials = trials+1
+
+        if trials < 5:
+            time.sleep(3)
+            exportExcel(name)
+        else:
+            trials = 0
+
+            click("mainContent_price_list_sticker1_btnGenerate")
+            wait()
+
+            time.sleep(10)
+            exportExcel(name)
+
 
 ################################################################################
 
@@ -145,6 +159,8 @@ print('Start scraping task...')
 options = [catExecutables, cutExecutables, paperExecutables, finishExecutables]
 options = list(itertools.product(*options))
 
+currentCategory = ''
+
 for option in options:
 
     scrollTop()
@@ -164,14 +180,17 @@ for option in options:
     ############################################################################
 
     ## Select quantities
-    scrollTo('mainContent_price_list_sticker1_ddlfinishing')
-    time.sleep(3)
+    if category != currentCategory:
+        scrollTo('mainContent_price_list_sticker1_ddlfinishing')
+        time.sleep(3)
 
-    check('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
-    check('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
-    check('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
+        check('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
+        check('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
+        check('mainContent_price_list_sticker1_cblQty_3') # 150,000 - 1,000,000
 
-    print('Select all quantities')
+        print('Select all quantities')
+
+    currentCategory = category
 
     ############################################################################
 
@@ -201,7 +220,7 @@ for option in options:
         minHeight = 15 # 1~10 only applicable for "Warranty Sticker"
 
     ## Check for cutting method supports
-    if category != "Rectangle/Square" and cutting == "Die-Cutting":
+    if category != "Rectangle/Square" and cutting == "Cut To Size":
         print('Cutting method "'+cutting+'" is not supported. Skipping..')
         continue
 
@@ -217,9 +236,14 @@ for option in options:
 
     ############################################################################
 
+    ## Skip finishing
+    if category == "Round" and cutting == "Die-Cutting" and paper == "Synthetic Paper" and finish == "Not Required":
+        print('Skip finishing "', finish, '"')
+        continue
+
     ## Skip dimension
-    # if category == "Round" and cutting == "Cut To Size" and paper == "Transparent OPP" and finish == "Not Required":
-    #     minHeight = 143
+    if category == "Round" and cutting == "Die-Cutting" and paper == "Synthetic Paper" and finish == "Matte Laminate (Front)":
+        minHeight = 116
 
     ############################################################################
 
@@ -233,7 +257,10 @@ for option in options:
         dimensions = removeDuplicates(list(itertools.product(*[H, W])))
 
     for dim in dimensions:
+        start = time.time()
+
         scrollTop()
+        time.sleep(3)
 
         ## Set diameter if category == "Round"
         if category == "Round":
@@ -310,19 +337,21 @@ for option in options:
         print('Generating price list')
         wait()
 
-        time.sleep(10)
+        time.sleep(5)
 
         ## Export
         dirName = "/".join(['export', 'CAT='+category, 'CUT='+cutting, 'PP='+paper, 'FIN='+finish])
         filename = 'pricelist_'+dimension+'mm'
-
 
         if not os.path.exists(dirName):
             os.makedirs(dirName)
 
         exportExcel(dirName+'/'+filename)
 
-        print('Price list is exported successfully')
+        end = time.time()
+        elapsed = end - start
+
+        print('Price list is exported successfully in '+elapsed+'s')
         print('Preparing for next task...')
 
         ## Clear dimension input
