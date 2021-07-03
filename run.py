@@ -351,7 +351,7 @@ for option in options:
         end = time.time()
         elapsed = end - start
 
-        print('Price list is exported successfully in '+elapsed+'s')
+        print('Price list is exported successfully in '+str(elapsed)+'s')
         print('Preparing for next task...')
 
         ## Clear dimension input
