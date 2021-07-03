@@ -274,15 +274,15 @@ for option in options:
         ## Else, set dimensions
         else:
             dimension = str(dim[0])+'x'+str(dim[1])
-            print('Set height x width as '+dimension)
+            print('Set dimension as '+dimension)
 
             fill("mainContent_price_list_sticker1_txtHeight", dim[0])
-            click("mainContent_price_list_sticker1_txtHeight")
+            click("mainContent_price_list_sticker1_txtWidth")
 
             time.sleep(3)
 
             fill("mainContent_price_list_sticker1_txtWidth", dim[1])
-            click("mainContent_price_list_sticker1_txtWidth")
+            click("mainContent_price_list_sticker1_txtHeight")
 
             time.sleep(3)
 
