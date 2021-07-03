@@ -182,7 +182,7 @@ for option in options:
     ## Select quantities
     if category != currentCategory:
         scrollTo('mainContent_price_list_sticker1_ddlfinishing')
-        time.sleep(3)
+        # time.sleep(3)
 
         check('mainContent_price_list_sticker1_cblQty_1') # 1,500 - 10,000
         check('mainContent_price_list_sticker1_cblQty_2') # 15,000 - 100,000
@@ -243,7 +243,7 @@ for option in options:
 
     ## Skip dimension
     if category == "Round" and cutting == "Die-Cutting" and paper == "Synthetic Paper" and finish == "Matte Laminate (Front)":
-        minHeight = 116
+        minHeight = 123
 
     ############################################################################
 
@@ -260,7 +260,7 @@ for option in options:
         start = time.time()
 
         scrollTop()
-        time.sleep(3)
+        # time.sleep(3)
 
         ## Set diameter if category == "Round"
         if category == "Round":
@@ -331,7 +331,7 @@ for option in options:
 
         ## Generate price list
         scrollTo('mainContent_price_list_sticker1_ddlfinishing')
-        time.sleep(3)
+        # time.sleep(3)
 
         click("mainContent_price_list_sticker1_btnGenerate")
         print('Generating price list')
